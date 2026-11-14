@@ -178,7 +178,6 @@ body {
   font-size: 2.25rem;
   font-weight: 800;
   letter-spacing: -0.04em;
-  background: linear-gradient(135deg, var(--accent), #0284c7);
   background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -274,7 +273,7 @@ body {
 }
 
 /* ===== INPUTS ===== */
-textarea, input[type="text"] {
+textarea, input[type="text"], input[type="password"] {
   width: 100%;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.88rem;
@@ -290,7 +289,7 @@ textarea, input[type="text"] {
 
 textarea { min-height: 160px; line-height: 1.65; }
 
-textarea:focus, input[type="text"]:focus {
+textarea:focus, input[type="text"]:focus, input[type="password"]:focus {
   border-color: var(--input-focus);
   box-shadow: 0 0 0 3px var(--accent-glow);
 }
@@ -354,7 +353,7 @@ label:first-of-type { margin-top: 0; }
   opacity: 0;
 }
 
-.advanced-content.open { max-height: 400px; opacity: 1; }
+.advanced-content.open { max-height: 500px; opacity: 1; }
 
 /* ===== BUTTONS ===== */
 .btn-analyze {
@@ -384,6 +383,7 @@ label:first-of-type { margin-top: 0; }
 }
 
 .btn-analyze:active { transform: translateY(0); }
+.btn-analyze:disabled { opacity: 0.6; cursor: wait; }
 
 /* ===== RESULTS CONTAINER ===== */
 #results {
@@ -449,7 +449,6 @@ label:first-of-type { margin-top: 0; }
 
 .verdict-info { flex: 1; min-width: 200px; }
 
-/* Professional Status Pill */
 .verdict-badge {
   display: inline-flex;
   align-items: center;
@@ -493,6 +492,70 @@ label:first-of-type { margin-top: 0; }
 .verdict-subtitle {
   font-size: 0.85rem;
   color: var(--text-secondary);
+}
+
+/* ===== AI FORENSIC CARD ===== */
+.ai-card {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(5, 150, 105, 0.02));
+  border: 1.5px solid rgba(16, 185, 129, 0.25);
+  border-radius: 16px;
+  padding: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.ai-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ai-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-subtle);
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+}
+
+.tactics-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.65rem 0 0.85rem;
+}
+
+.tactic-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  background: rgba(220, 38, 38, 0.08);
+  color: var(--risk-high);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.ai-summary {
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  line-height: 1.55;
+  margin-bottom: 0.65rem;
+}
+
+.ai-action {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border-left: 3px solid var(--accent);
 }
 
 /* ===== HIGHLIGHTED MESSAGE ===== */
@@ -590,26 +653,11 @@ label:first-of-type { margin-top: 0; }
   flex-shrink: 0;
 }
 
-.severity-icon-badge.high {
-  background: var(--risk-high-bg);
-  color: var(--risk-high);
-}
+.severity-icon-badge.high { background: var(--risk-high-bg); color: var(--risk-high); }
+.severity-icon-badge.medium { background: var(--risk-med-bg); color: var(--risk-med); }
+.severity-icon-badge.low { background: var(--risk-low-bg); color: var(--risk-low); }
 
-.severity-icon-badge.medium {
-  background: var(--risk-med-bg);
-  color: var(--risk-med);
-}
-
-.severity-icon-badge.low {
-  background: var(--risk-low-bg);
-  color: var(--risk-low);
-}
-
-.warning-name {
-  flex: 1;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
+.warning-name { flex: 1; font-weight: 600; font-size: 0.9rem; }
 
 .warning-count {
   font-size: 0.75rem;
@@ -698,10 +746,7 @@ label:first-of-type { margin-top: 0; }
   border-radius: 6px;
 }
 
-.sender-flag .severity-icon-badge .icon {
-  width: 0.85rem;
-  height: 0.85rem;
-}
+.sender-flag .severity-icon-badge .icon { width: 0.85rem; height: 0.85rem; }
 
 /* ===== HOW TO STAY SAFE (EMOJI-FREE) ===== */
 .safety-list {
@@ -739,10 +784,7 @@ label:first-of-type { margin-top: 0; }
   margin-top: 1px;
 }
 
-.safety-content strong {
-  color: var(--text-primary);
-  font-weight: 600;
-}
+.safety-content strong { color: var(--text-primary); font-weight: 600; }
 
 /* ===== COPY REPORT BUTTON ===== */
 .btn-copy {
@@ -792,17 +834,8 @@ label:first-of-type { margin-top: 0; }
   margin-bottom: 0.85rem;
 }
 
-.clean-state h3 {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--risk-low);
-}
-
-.clean-state p {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  margin-top: 0.35rem;
-}
+.clean-state h3 { font-size: 1.15rem; font-weight: 700; color: var(--risk-low); }
+.clean-state p { color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.35rem; }
 
 /* ===== FOOTER ===== */
 .footer {
@@ -845,7 +878,6 @@ label:first-of-type { margin-top: 0; }
   <!-- ===== HEADER ===== -->
   <header class="header">
     <div class="header-badge-wrapper">
-      <!-- Shield Alert SVG Icon -->
       <svg class="icon icon-lg" viewBox="0 0 24 24">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
         <line x1="12" y1="8" x2="12" y2="12"/>
@@ -853,7 +885,7 @@ label:first-of-type { margin-top: 0; }
       </svg>
     </div>
     <h1>Suspicion</h1>
-    <p class="tagline">Scam & Phishing Message Analyzer · Spot red flags before you act</p>
+    <p class="tagline">Hybrid AI Scam & Phishing Analyzer · Heuristics + LLM Semantic Reasoning</p>
   </header>
 
   <!-- ===== INPUT SECTION ===== -->
@@ -889,23 +921,27 @@ label:first-of-type { margin-top: 0; }
     <!-- Sender Info -->
     <label>Sender details <span style="font-weight:400;color:var(--text-muted)">(optional — helps catch lookalike domains)</span></label>
     <div class="sender-row">
-      <input type="text" id="senderFrom" placeholder='From: e.g. support@amaz0n-help.com'>
+      <input type="text" id="senderFrom" placeholder='From: e.g. security@amaz0n-support.com'>
       <input type="text" id="senderReplyTo" placeholder='Reply-To: if different from sender'>
     </div>
 
-    <!-- Advanced: Email Headers -->
+    <!-- Advanced: Email Headers & AI Config -->
     <button class="advanced-toggle" id="advancedToggle" onclick="toggleAdvanced()">
       <span class="arrow">
         <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
       </span>
-      Advanced: Paste raw email headers
+      Advanced: Email Headers & AI Settings
     </button>
     <div class="advanced-content" id="advancedContent">
-      <textarea id="headerInput" style="min-height:100px;margin-top:0.5rem" placeholder="Paste raw email headers here (From, Return-Path, Received, Authentication-Results, etc.)..."></textarea>
+      <label>Raw Email Headers</label>
+      <textarea id="headerInput" style="min-height:90px;margin-top:0.25rem" placeholder="Paste raw email headers here (From, Return-Path, Received, Authentication-Results, etc.)..."></textarea>
+      
+      <label style="margin-top:0.85rem">Gemini API Key <span style="font-weight:400;color:var(--text-muted)">(optional — for live LLM neural analysis)</span></label>
+      <input type="password" id="geminiApiKey" placeholder="AIzaSy... (leave blank to use heuristic semantic engine)">
     </div>
 
     <!-- Analyze Button -->
-    <button class="btn-analyze" onclick="analyzeMessage()">
+    <button class="btn-analyze" id="analyzeBtn" onclick="analyzeMessage()">
       <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       Analyze Message
     </button>
@@ -939,13 +975,28 @@ label:first-of-type { margin-top: 0; }
           <div class="verdict-subtitle" id="verdictSubtitle"></div>
         </div>
       </div>
+
+      <!-- AI Deep Forensic Reasoning Card -->
+      <div class="ai-card" id="aiCard">
+        <div class="ai-header">
+          <div style="font-weight:700;font-size:0.9rem;display:flex;align-items:center;gap:0.4rem">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            AI Semantic Forensic Report
+          </div>
+          <span class="ai-badge" id="aiProviderBadge">Semantic Engine</span>
+        </div>
+        <div style="font-size:0.78rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">Identified Manipulation Vectors:</div>
+        <div class="tactics-wrap" id="aiTacticsList"></div>
+        <div class="ai-summary" id="aiThreatSummary"></div>
+        <div class="ai-action" id="aiActionPlan"></div>
+      </div>
     </div>
 
     <!-- Highlighted Message -->
     <div class="card fade-in-delay-1" id="highlightCard">
       <div class="card-title">
         <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-        Inspected Message
+        Inspected Message Evidence
       </div>
       <div class="highlighted-message" id="highlightedMessage"></div>
     </div>
@@ -954,7 +1005,7 @@ label:first-of-type { margin-top: 0; }
     <div class="card fade-in-delay-1" id="senderCard" style="display:none">
       <div class="card-title">
         <svg class="icon" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-        Sender Analysis
+        Sender & Relay Inspection
       </div>
       <div id="senderResults"></div>
     </div>
@@ -1023,17 +1074,16 @@ label:first-of-type { margin-top: 0; }
 
   <!-- ===== FOOTER ===== -->
   <footer class="footer">
-    Suspicion · 100% Client-Side Privacy · Your message is never transmitted or stored on external servers
+    Suspicion · Dual Engine (Heuristics + AI LLM) · Powered by Google Gemini & Python
   </footer>
 
 </div>
 
 <script>
 /* ================================================================
-   SUSPICION — Scam & Phishing Heuristic Engine
+   SUSPICION — Frontend & Backend Bridge
    ================================================================ */
 
-// Icon generator helper for clean vector icons
 function getIconSVG(name) {
   const icons = {
     clock: '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
@@ -1048,12 +1098,19 @@ function getIconSVG(name) {
     alertTriangle: '<svg class="icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
     checkCircle: '<svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
     arrowRight: '<svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>',
-    check: '<svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>'
+    check: '<svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>',
+    sparkles: '<svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>'
   };
   return icons[name] || icons.alertTriangle;
 }
 
-// ---- MESSAGE TYPE SELECTION ----
+// Persist API key in localStorage
+const savedApiKey = localStorage.getItem('suspicion_gemini_key');
+if (savedApiKey) {
+  const keyInput = document.getElementById('geminiApiKey');
+  if (keyInput) keyInput.value = savedApiKey;
+}
+
 let selectedType = 'email';
 document.querySelectorAll('.type-tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -1063,7 +1120,6 @@ document.querySelectorAll('.type-tab').forEach(tab => {
   });
 });
 
-// ---- ADVANCED ACCORDION ----
 function toggleAdvanced() {
   const btn = document.getElementById('advancedToggle');
   const content = document.getElementById('advancedContent');
@@ -1071,407 +1127,55 @@ function toggleAdvanced() {
   content.classList.toggle('open');
 }
 
-// ---- WARNING PATTERNS ----
-const WARNING_PATTERNS = [
-  {
-    id: 'urgency',
-    name: 'Artificial Urgency & Pressure',
-    severity: 'high',
-    iconName: 'clock',
-    hlClass: 'hl-urgency',
-    patterns: [
-      /\b(act now|immediately|right away|as soon as possible|asap|urgent|urgently)\b/gi,
-      /\bwithin\s+\d+\s*(hours?|minutes?|days?)\b/gi,
-      /\b(don'?t delay|time.?sensitive|limited time|expires? (today|soon|shortly))\b/gi,
-      /\b(your account (will be|has been|is being) (suspended|closed|locked|deactivated|terminated|restricted))\b/gi,
-      /\b(failure to (act|respond|verify|comply|confirm))\b/gi,
-      /\b(last (chance|warning|notice|reminder))\b/gi,
-      /\b(respond|reply|act|verify|confirm|update)\b.{0,15}\b(before|or else|otherwise)\b/gi,
-    ],
-    explanation: '<strong>Why is this suspicious?</strong> Attackers create an artificial sense of urgency to trigger anxiety and rush you into making mistakes before you have time to consult others or verify through safe channels.'
-  },
-  {
-    id: 'sensitive_info',
-    name: 'Requests for Sensitive Information',
-    severity: 'high',
-    iconName: 'lock',
-    hlClass: 'hl-info-req',
-    patterns: [
-      /\b(password|passcode|pin\s*code|pin\s*number|security code)\b/gi,
-      /\b(social security|ssn|tax\s*id|national\s*id)\b/gi,
-      /\b(credit card|debit card|card number|cvv|cvc|expir(y|ation)\s*date)\b/gi,
-      /\b(bank account|routing number|account number|sort code|iban)\b/gi,
-      /\b(verify your (identity|account|information|details|credentials))\b/gi,
-      /\b(confirm your (identity|account|information|details|credentials))\b/gi,
-      /\b(update your (payment|billing|account)\s*(info|information|details|method))\b/gi,
-      /\b(login|log\s*in|sign\s*in)\s*(credentials?|details?|info(rmation)?)\b/gi,
-      /\b(mother'?s?\s*maiden\s*name|date of birth|dob)\b/gi,
-    ],
-    explanation: '<strong>Why is this suspicious?</strong> Reputable organizations never solicit passwords, PINs, or complete card numbers over unauthenticated communication channels. Legitimate portals provide self-service account management within their authenticated apps.'
-  },
-  {
-    id: 'suspicious_links',
-    name: 'Suspicious or Deceptive Links',
-    severity: 'medium',
-    iconName: 'link',
-    hlClass: 'hl-link',
-    patterns: [
-      /https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}[^\s]*/gi,
-      /https?:\/\/[^\s]*\.(tk|ml|ga|cf|gq|xyz|top|club|buzz|icu|cam|rest|surf)\b[^\s]*/gi,
-      /(bit\.ly|tinyurl|t\.co|goo\.gl|ow\.ly|is\.gd|buff\.ly|soo\.gd|s\.id|rebrand\.ly|short\.io)\b[^\s]*/gi,
-      /https?:\/\/[^\s]*(-secure|-verify|-login|-update|-account|-confirm|-alert|-support)[^\s]*/gi,
-      /https?:\/\/[^\s]*\.(com|org|net)-[^\s]*/gi,
-    ],
-    explanation: '<strong>Why is this suspicious?</strong> Phishing links often employ obscure domain extensions (.tk, .xyz), numeric IP addresses, or URL shorteners to mask where they actually lead. Never click links inside unsolicited messages.'
-  },
-  {
-    id: 'generic_greeting',
-    name: 'Generic Greeting or Impersonal Salutation',
-    severity: 'low',
-    iconName: 'user',
-    hlClass: 'hl-generic',
-    patterns: [
-      /\b(dear\s+(customer|user|client|member|valued\s+(customer|user|client|member)|sir\s*\/?\s*ma'?am|account\s*holder))\b/gi,
-      /\b(hello\s+(customer|user|member))\b/gi,
-      /\b(attention\s+(customer|user|account\s*holder))\b/gi,
-    ],
-    explanation: '<strong>Why is this suspicious?</strong> Services you maintain an account with generally address you by your registered first and last name. Mass automated phishing attacks use blanket greetings because they do not know your personal name.'
-  },
-  {
-    id: 'threats',
-    name: 'Threats & Coercive Language',
-    severity: 'high',
-    iconName: 'shieldAlert',
-    hlClass: 'hl-urgency',
-    patterns: [
-      /\b(unauthorized (access|activity|transaction|login|charge))\b/gi,
-      /\b(legal action|law enforcement|prosecut(e|ed|ion)|arrest)\b/gi,
-      /\b(permanently (locked|closed|suspended|banned|deleted))\b/gi,
-      /\b(security (breach|alert|incident|threat|compromise))\b/gi,
-      /\b(your (account|data|information) (is|has been|was) (compromised|breached|stolen|hacked|accessed))\b/gi,
-      /\b(we have detected|we noticed|unusual (activity|login|sign.?in|behavior))\b/gi,
-      /\b(will be (reported|forwarded) to (authorities|law enforcement|police))\b/gi,
-    ],
-    explanation: '<strong>Why is this suspicious?</strong> Scammers weaponize fear of financial loss or legal consequences to override rational evaluation. Legitimate incident alerts maintain a neutral tone and guide you to standard security menus.'
-  },
-  {
-    id: 'too_good',
-    name: 'Unsolicited Prize or Reward Offer',
-    severity: 'medium',
-    iconName: 'gift',
-    hlClass: 'hl-generic',
-    patterns: [
-      /\b(you('ve|'ve| have)\s*(been\s*)?(won|selected|chosen))\b/gi,
-      /\b(congratulations|congrats)\b/gi,
-      /\b(free (gift|iphone|ipad|macbook|laptop|prize|money|cash|reward))\b/gi,
-      /\b(claim (your|the) (prize|reward|gift|winnings|bonus))\b/gi,
-      /\b(lottery|sweepstakes|jackpot|grand prize)\b/gi,
-      /\b(guaranteed\s*(income|return|profit|money))\b/gi,
-      /\b(risk.?free|no.?risk|100%\s*(safe|guaranteed|free))\b/gi,
-      /\b(exclusive (offer|deal|opportunity|access))\b/gi,
-    ],
-    explanation: '<strong>Why is this suspicious?</strong> Unsolicited claims that you have won a prize, sweepstakes, or exclusive reward are designed to solicit advance fees or harvest personal identity records.'
-  },
-  {
-    id: 'impersonation',
-    name: 'Corporate Impersonation Cues',
-    severity: 'medium',
-    iconName: 'user',
-    hlClass: 'hl-generic',
-    patterns: [
-      /\b(support team|security (team|department|division)|customer (service|care|support)\s*(team|department|center)?)\b/gi,
-      /\b(official (notice|notification|communication|message|announcement))\b/gi,
-      /\b(this is\s+(an?\s+)?(official|automated|system)\s*(message|notification|alert|email|notice))\b/gi,
-      /\b(on behalf of|representing|from the (office|desk|department) of)\b/gi,
-      /\b(do not (share|forward) this (email|message|notification))\b/gi,
-      /\b(confidential|private and confidential)\b/gi,
-    ],
-    explanation: '<strong>Why is this suspicious?</strong> Attackers frequently cite generic titles such as "Fraud Prevention Division" or "Official Security Dispatch" to establish false authority.'
-  },
-  {
-    id: 'click_download',
-    name: 'Coercion to Click or Download Attachments',
-    severity: 'high',
-    iconName: 'mouse',
-    hlClass: 'hl-link',
-    patterns: [
-      /\b(click (here|below|the (link|button|url)))\b/gi,
-      /\b(open the (attachment|file|document|link))\b/gi,
-      /\b(download (the|this|attached)\s*(file|document|form|attachment|software|app))\b/gi,
-      /\b(install (the|this|our)\s*(app|update|software|tool|patch))\b/gi,
-      /\b(see attached|find attached|attached (file|document|form))\b/gi,
-      /\b(follow (the|this) link)\b/gi,
-      /\b(tap (here|below|the (link|button)))\b/gi,
-    ],
-    explanation: '<strong>Why is this suspicious?</strong> Direct commands to click an inline link or open an attachment often deliver infostealers, ransomware, or route you to fake credential-harvesting landing pages.'
-  },
-  {
-    id: 'money_payment',
-    name: 'Untraceable Payment or Transfer Request',
-    severity: 'high',
-    iconName: 'dollar',
-    hlClass: 'hl-info-req',
-    patterns: [
-      /\b(wire transfer|bank transfer|money transfer)\b/gi,
-      /\b(gift card|itunes card|google play card|steam card|amazon card)\b/gi,
-      /\b(crypto(currency)?|bitcoin|btc|ethereum|eth|usdt)\b/gi,
-      /\b(send (payment|money|funds|the amount))\b/gi,
-      /\b(processing fee|handling fee|shipping fee|activation fee|insurance fee|tax fee)\b/gi,
-      /\b(pay (now|immediately|today|the (fine|fee|penalty|balance)))\b/gi,
-      /\b(payment (required|due|overdue|pending))\b/gi,
-      /\b(invoice (attached|enclosed|included|#\d+))\b/gi,
-      /\b(venmo|zelle|cash\s*app|paypal\.me)\b/gi,
-    ],
-    explanation: '<strong>Why is this suspicious?</strong> Requests for immediate payment using irreversible methods such as gift cards, cryptocurrency, or wire transfers are a definitive indicator of fraud.'
-  },
-  {
-    id: 'grammar',
-    name: 'Syntax Anomalies & Obfuscated Casing',
-    severity: 'low',
-    iconName: 'type',
-    hlClass: 'hl-generic',
-    patterns: [
-      /[A-Z]{2,}\s+[A-Z]{2,}\s+[A-Z]{2,}/g,
-      /\b\w+\s{2,}\w+\b/g,
-      /[!?]{3,}/g,
-      /\$\$+|\€\€+/g,
-    ],
-    explanation: '<strong>Why is this suspicious?</strong> Irregular punctuation, repeated capital words, or strange spacing are often employed to bypass automated spam filters or reflect sloppy translation.'
-  },
-];
-
-// ---- KNOWN BRANDS FOR LOOKALIKE DETECTION ----
-const KNOWN_BRANDS = [
-  'paypal.com','amazon.com','apple.com','microsoft.com','google.com',
-  'netflix.com','facebook.com','instagram.com','twitter.com','x.com',
-  'linkedin.com','chase.com','bankofamerica.com','wellsfargo.com','citibank.com',
-  'usbank.com','capitalone.com','americanexpress.com','discover.com',
-  'dropbox.com','icloud.com','outlook.com','yahoo.com','aol.com',
-  'fedex.com','ups.com','usps.com','dhl.com','walmart.com',
-  'target.com','bestbuy.com','ebay.com','etsy.com','spotify.com',
-  'adobe.com','zoom.us','slack.com','github.com','twitch.tv',
-  'tiktok.com','snapchat.com','whatsapp.com','telegram.org','discord.com',
-  'venmo.com','cashapp.com','zelle.com','stripe.com','square.com',
-  'coinbase.com','binance.com','robinhood.com',
-];
-
-const FREE_EMAIL_PROVIDERS = [
-  'gmail.com','yahoo.com','hotmail.com','outlook.com','aol.com',
-  'mail.com','protonmail.com','proton.me','icloud.com','yandex.com',
-  'zoho.com','gmx.com','live.com','msn.com','inbox.com',
-];
-
-// ---- SCAM CLASSIFICATION TAXONOMY ----
-const SCAM_CATEGORIES = [
-  { name: 'Package & Delivery Phishing', keywords: ['delivery','package','parcel','shipment','tracking','shipped','courier','fedex','ups','usps','dhl','order','dispatch'] },
-  { name: 'Banking & Financial Fraud', keywords: ['bank','account','transaction','transfer','payment','balance','statement','overdraft','wire','routing','iban','debit','credit'] },
-  { name: 'Account Security Scare', keywords: ['password','login','sign in','unauthorized','compromised','breached','hacked','security','verify','locked','suspended','two-factor','2fa','mfa'] },
-  { name: 'Sweepstakes & Prize Scam', keywords: ['won','winner','lottery','prize','congratulations','sweepstakes','jackpot','selected','reward','claim'] },
-  { name: 'Recruitment & Job Offer Scam', keywords: ['job','position','hire','hiring','salary','remote work','work from home','opportunity','recruitment','interview','resume','cv','offer letter'] },
-  { name: 'Invoice & Billing Fraud', keywords: ['invoice','payment due','overdue','billing','subscription','renew','receipt','refund','charge','fee'] },
-  { name: 'Executive Impersonation (BEC)', keywords: ['ceo','cfo','director','manager','behalf of','executive','wire','confidential','don\'t tell','keep this between','favor'] },
-];
-
-// ---- LEVENSHTEIN DISTANCE ----
-function levenshtein(a, b) {
-  const m = a.length, n = b.length;
-  const dp = Array.from({length: m+1}, () => Array(n+1).fill(0));
-  for (let i = 0; i <= m; i++) dp[i][0] = i;
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
-  for (let i = 1; i <= m; i++)
-    for (let j = 1; j <= n; j++)
-      dp[i][j] = Math.min(
-        dp[i-1][j] + 1,
-        dp[i][j-1] + 1,
-        dp[i-1][j-1] + (a[i-1] !== b[j-1] ? 1 : 0)
-      );
-  return dp[m][n];
-}
-
-function extractURLs(text) {
-  const urlRegex = /https?:\/\/([^\s\/\])"'>]+)/gi;
-  const matches = [];
-  let m;
-  while ((m = urlRegex.exec(text)) !== null) {
-    matches.push({ full: m[0], domain: m[1].toLowerCase().replace(/^www\./, '') });
-  }
-  return matches;
-}
-
-function extractEmailDomain(email) {
-  const match = email.match(/@([^\s>]+)/);
-  return match ? match[1].toLowerCase().replace(/^www\./, '') : null;
-}
-
-function findLookalikes(domains) {
-  const results = [];
-  const checked = new Set();
-  for (const domain of domains) {
-    if (checked.has(domain)) continue;
-    checked.add(domain);
-    if (KNOWN_BRANDS.includes(domain)) continue;
-    const domainBase = domain.split('.')[0];
-    for (const brand of KNOWN_BRANDS) {
-      const brandBase = brand.split('.')[0];
-      const dist = levenshtein(domainBase, brandBase);
-      const maxLen = Math.max(domainBase.length, brandBase.length);
-      if (dist > 0 && dist <= 2 && maxLen >= 4) {
-        results.push({ found: domain, real: brand, distance: dist });
-        break;
-      }
-    }
-  }
-  return results;
-}
-
-function analyzeSender(fromAddr, replyToAddr) {
-  const flags = [];
-  if (!fromAddr && !replyToAddr) return flags;
-
-  if (fromAddr) {
-    const domain = extractEmailDomain(fromAddr);
-    if (domain) {
-      const lookalikes = findLookalikes([domain]);
-      if (lookalikes.length > 0) {
-        flags.push({ severity: 'high', text: `Sender domain <strong>${lookalikes[0].found}</strong> mimics legitimate brand <strong>${lookalikes[0].real}</strong>.`, domain: lookalikes[0] });
-      }
-      if (FREE_EMAIL_PROVIDERS.includes(domain)) {
-        const lowerAddr = fromAddr.toLowerCase();
-        const companyKeywords = ['bank','paypal','amazon','apple','microsoft','support','security','admin','helpdesk','service','official'];
-        for (const kw of companyKeywords) {
-          if (lowerAddr.includes(kw)) {
-            flags.push({ severity: 'high', text: `Sender uses a free mail host (${domain}) while claiming to represent "${kw}". Official corporate messages originate from verified company domains.` });
-            break;
-          }
-        }
-      }
-      if (/\d/.test(domain.split('.')[0]) && !KNOWN_BRANDS.includes(domain)) {
-        flags.push({ severity: 'medium', text: `Sender domain contains numeric substitutions (<strong>${domain}</strong>), a common technique in typosquatting.` });
-      }
-      if (domain.split('.').length > 3) {
-        flags.push({ severity: 'medium', text: `Deep subdomain nesting detected (<strong>${domain}</strong>), which may conceal the primary hosting authority.` });
-      }
-    }
-  }
-
-  if (fromAddr && replyToAddr) {
-    const fromDomain = extractEmailDomain(fromAddr);
-    const replyDomain = extractEmailDomain(replyToAddr);
-    if (fromDomain && replyDomain && fromDomain !== replyDomain) {
-      flags.push({ severity: 'high', text: `Reply-To destination (<strong>${replyDomain}</strong>) differs from sender From domain (<strong>${fromDomain}</strong>) — replies route to an alternate mailbox.` });
-    }
-  }
-
-  return flags;
-}
-
-function analyzeHeaders(headerText) {
-  const flags = [];
-  if (!headerText.trim()) return flags;
-
-  const fromMatch = headerText.match(/^From:\s*.*?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+)/mi);
-  const returnMatch = headerText.match(/^Return-Path:\s*<?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+)/mi);
-  if (fromMatch && returnMatch) {
-    const fromDomain = fromMatch[1].split('@')[1]?.toLowerCase();
-    const returnDomain = returnMatch[1].split('@')[1]?.toLowerCase();
-    if (fromDomain && returnDomain && fromDomain !== returnDomain) {
-      flags.push({ severity: 'high', text: `Envelope Return-Path (<strong>${returnDomain}</strong>) does not match displayed From domain (<strong>${fromDomain}</strong>).` });
-    }
-  }
-
-  const authResults = headerText.match(/authentication-results:.*$/mi);
-  if (authResults) {
-    const authLine = authResults[0].toLowerCase();
-    if (authLine.includes('spf=fail') || authLine.includes('spf=softfail')) {
-      flags.push({ severity: 'high', text: 'SPF verification failed — sending mail server is not authorized to deliver messages for this domain.' });
-    }
-    if (authLine.includes('dkim=fail')) {
-      flags.push({ severity: 'high', text: 'DKIM signature validation failed — message body or headers may have been modified in transit.' });
-    }
-    if (authLine.includes('dmarc=fail')) {
-      flags.push({ severity: 'high', text: 'DMARC alignment check failed — message violates the domain owner\'s published enforcement policy.' });
-    }
-  }
-
-  const receivedHeaders = headerText.match(/^Received:.*$/gmi) || [];
-  if (receivedHeaders.length > 8) {
-    flags.push({ severity: 'medium', text: `Elevated relay hop count (${receivedHeaders.length} servers traversed), consistent with multi-proxy forwarding.` });
-  }
-
-  return flags;
-}
-
-function classifyScam(text) {
-  const lower = text.toLowerCase();
-  let bestMatch = null;
-  let bestScore = 0;
-  for (const cat of SCAM_CATEGORIES) {
-    let score = 0;
-    for (const kw of cat.keywords) {
-      if (lower.includes(kw)) score++;
-    }
-    if (score > bestScore) {
-      bestScore = score;
-      bestMatch = cat;
-    }
-  }
-  return bestScore >= 2 ? bestMatch : null;
-}
-
-// ---- MAIN ANALYSIS CONTROLLER ----
-function analyzeMessage() {
+// ---- MAIN ANALYZE CALL ----
+async function analyzeMessage() {
   const message = document.getElementById('messageInput').value.trim();
   if (!message) {
-    alert('Please paste a message into the text area before running analysis.');
+    alert('Please paste a message before running analysis.');
     return;
   }
 
   const fromAddr = document.getElementById('senderFrom').value.trim();
   const replyToAddr = document.getElementById('senderReplyTo').value.trim();
-  const headerText = document.getElementById('headerInput').value.trim();
+  const headers = document.getElementById('headerInput').value.trim();
+  const apiKey = document.getElementById('geminiApiKey').value.trim();
 
-  // 1. Heuristic Pattern Detection
-  const detectedWarnings = [];
-  const allMatches = [];
-
-  for (const wp of WARNING_PATTERNS) {
-    const categoryMatches = [];
-    for (const regex of wp.patterns) {
-      regex.lastIndex = 0;
-      let m;
-      while ((m = regex.exec(message)) !== null) {
-        const start = m.index;
-        const end = start + m[0].length;
-        categoryMatches.push({ start, end, text: m[0] });
-        allMatches.push({ start, end, text: m[0], hlClass: wp.hlClass, categoryName: wp.name });
-      }
-    }
-    if (categoryMatches.length > 0) {
-      detectedWarnings.push({ pattern: wp, matches: categoryMatches });
-    }
+  if (apiKey) {
+    localStorage.setItem('suspicion_gemini_key', apiKey);
   }
 
-  // 2. Lookalike URL Extraction
-  const extractedURLs = extractURLs(message);
-  const allDomains = extractedURLs.map(u => u.domain);
-  const lookalikes = findLookalikes(allDomains);
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  btn.innerHTML = `<svg class="icon" style="animation:spin 1s linear infinite" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="16"/></svg> Running Deep Inspection...`;
 
-  // 3. Sender Header Checks
-  const senderFlags = analyzeSender(fromAddr, replyToAddr);
-  const headerFlags = analyzeHeaders(headerText);
+  try {
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message,
+        message_type: selectedType,
+        sender_from: fromAddr,
+        sender_reply_to: replyToAddr,
+        headers,
+        api_key: apiKey
+      })
+    });
 
-  // 4. Incident Classification
-  const scamCategory = classifyScam(message);
-
-  // 5. Severity Calculation
-  let flagCount = detectedWarnings.length + lookalikes.length + (senderFlags.length > 0 ? 1 : 0) + (headerFlags.length > 0 ? 1 : 0);
-  const maxScore = WARNING_PATTERNS.length + 2;
-
-  renderResults(message, detectedWarnings, allMatches, lookalikes, senderFlags, headerFlags, scamCategory, flagCount, maxScore);
+    if (!res.ok) throw new Error('Backend returned status ' + res.status);
+    const data = await res.json();
+    renderServerResults(message, data);
+  } catch (err) {
+    console.warn('Backend unavailable, running local fallback engine:', err);
+    runLocalFallback(message, fromAddr, replyToAddr, headers);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Analyze Message`;
+  }
 }
 
-// ---- RENDER PIPELINE ----
-function renderResults(message, detectedWarnings, allMatches, lookalikes, senderFlags, headerFlags, scamCategory, flagCount, maxScore) {
+// ---- RENDER SERVER RESULTS ----
+function renderServerResults(message, data) {
   const resultsEl = document.getElementById('results');
   resultsEl.style.display = 'block';
 
@@ -1479,30 +1183,21 @@ function renderResults(message, detectedWarnings, allMatches, lookalikes, sender
     document.getElementById('gaugeCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, 100);
 
-  // Gauge & Severity Styling
-  let riskColor, riskClass, riskLabel, riskSub;
-  if (flagCount <= 2) {
+  let riskColor;
+  if (data.risk_class === 'low') {
     riskColor = 'var(--risk-low)';
-    riskClass = 'low';
-    riskLabel = 'Low Risk';
-    riskSub = 'No prominent malicious patterns detected. Maintain general vigilance with unexpected links.';
-  } else if (flagCount <= 5) {
+  } else if (data.risk_class === 'medium') {
     riskColor = 'var(--risk-med)';
-    riskClass = 'medium';
-    riskLabel = 'Medium Risk';
-    riskSub = 'Multiple warning indicators detected. Independently verify the sender before taking action.';
   } else {
     riskColor = 'var(--risk-high)';
-    riskClass = 'high';
-    riskLabel = 'High Risk';
-    riskSub = 'Strong markers of phishing or financial fraud detected. Do not click links or reply.';
   }
 
+  // Gauge animation
   const gauge = document.getElementById('gaugeFill');
   const circumference = 314.16;
-  const ratio = Math.min(flagCount / maxScore, 1);
+  const ratio = Math.min(data.flag_count / data.max_score, 1);
   const offset = circumference * (1 - ratio);
-  
+
   gauge.style.stroke = riskColor;
   gauge.style.transition = 'none';
   gauge.setAttribute('stroke-dashoffset', circumference);
@@ -1513,35 +1208,58 @@ function renderResults(message, detectedWarnings, allMatches, lookalikes, sender
     });
   });
 
-  document.getElementById('gaugeScore').textContent = flagCount;
+  document.getElementById('gaugeScore').textContent = data.flag_count;
   document.getElementById('gaugeScore').style.color = riskColor;
-  document.getElementById('gaugeMax').textContent = `of ${maxScore} checks`;
+  document.getElementById('gaugeMax').textContent = `of ${data.max_score} checks`;
 
-  const badgeIcon = riskClass === 'low' ? getIconSVG('checkCircle') : getIconSVG('shieldAlert');
+  const badgeIcon = data.risk_class === 'low' ? getIconSVG('checkCircle') : getIconSVG('shieldAlert');
   document.getElementById('verdictBadgeContainer').innerHTML = `
-    <span class="verdict-badge ${riskClass}">
+    <span class="verdict-badge ${data.risk_class}">
       ${badgeIcon}
-      ${riskLabel}
+      ${data.risk_level}
     </span>
   `;
 
-  document.getElementById('verdictCategory').innerHTML = scamCategory ? `
+  document.getElementById('verdictCategory').innerHTML = data.scam_category ? `
     ${getIconSVG('alertTriangle')}
-    <span>Category: ${scamCategory.name}</span>
+    <span>Category: ${data.scam_category}</span>
   ` : '';
-  document.getElementById('verdictSubtitle').textContent = riskSub;
+  
+  document.getElementById('verdictSubtitle').textContent = data.risk_class === 'high' 
+    ? "High risk of deception or financial fraud detected. Do not click links or furnish credentials."
+    : (data.risk_class === 'medium' ? "Multiple indicators detected. Independently verify the sender before acting." : "No prominent deception patterns detected.");
 
-  renderHighlightedMessage(message, allMatches);
+  // AI Semantic Forensic Report
+  const llm = data.llm_analysis;
+  if (llm) {
+    document.getElementById('aiProviderBadge').innerHTML = `
+      ${getIconSVG('sparkles')}
+      ${escapeHTML(llm.provider || 'AI Engine')}
+    `;
+    
+    const tacticsList = document.getElementById('aiTacticsList');
+    if (llm.manipulation_tactics && llm.manipulation_tactics.length > 0) {
+      tacticsList.innerHTML = llm.manipulation_tactics.map(t => 
+        `<span class="tactic-tag">${escapeHTML(t)}</span>`
+      ).join('');
+    } else {
+      tacticsList.innerHTML = '<span class="tactic-tag" style="background:var(--accent-subtle);color:var(--accent);border-color:var(--border)">Standard Direct Communication</span>';
+    }
 
-  // Sender Inspection Box
+    document.getElementById('aiThreatSummary').textContent = llm.threat_summary || '';
+    document.getElementById('aiActionPlan').innerHTML = `<strong>Action Plan:</strong> ${escapeHTML(llm.recommended_action || '')}`;
+  }
+
+  // Highlight message
+  renderHighlightedMatches(message, data.all_matches || []);
+
+  // Sender card
   const senderCard = document.getElementById('senderCard');
   const senderResults = document.getElementById('senderResults');
-  const allSenderFlags = [...senderFlags, ...headerFlags];
-
-  if (allSenderFlags.length > 0) {
+  if (data.sender_flags && data.sender_flags.length > 0) {
     senderCard.style.display = 'block';
     senderResults.innerHTML = '<div class="sender-flags">' +
-      allSenderFlags.map(f => {
+      data.sender_flags.map(f => {
         const icon = f.severity === 'high' ? getIconSVG('shieldAlert') : getIconSVG('alertTriangle');
         return `
           <div class="sender-flag">
@@ -1551,14 +1269,14 @@ function renderResults(message, detectedWarnings, allMatches, lookalikes, sender
         `;
       }).join('') + '</div>';
 
-    if (senderFlags.some(f => f.domain)) {
-      const domainFlag = senderFlags.find(f => f.domain);
+    if (data.sender_flags.some(f => f.domain)) {
+      const d = data.sender_flags.find(f => f.domain).domain;
       senderResults.innerHTML += `
         <div class="domain-compare">
-          <span class="domain-found">${domainFlag.domain.found}</span>
+          <span class="domain-found">${escapeHTML(d.found)}</span>
           <span class="domain-arrow">→</span>
           <span>Targeted Brand:</span>
-          <span class="domain-real">${domainFlag.domain.real}</span>
+          <span class="domain-real">${escapeHTML(d.real)}</span>
         </div>
       `;
     }
@@ -1566,11 +1284,12 @@ function renderResults(message, detectedWarnings, allMatches, lookalikes, sender
     senderCard.style.display = 'none';
   }
 
-  // Warning List
+  // Warnings list
   const warningsList = document.getElementById('warningsList');
   const warningsCard = document.getElementById('warningsCard');
+  const hasWarnings = (data.detected_warnings && data.detected_warnings.length > 0) || (data.lookalikes && data.lookalikes.length > 0);
 
-  if (detectedWarnings.length === 0 && lookalikes.length === 0) {
+  if (!hasWarnings) {
     warningsCard.querySelector('.card-title').textContent = 'Verification Complete';
     warningsList.innerHTML = `
       <div class="clean-state">
@@ -1580,81 +1299,91 @@ function renderResults(message, detectedWarnings, allMatches, lookalikes, sender
       </div>
     `;
   } else {
+    const totalWarnings = (data.detected_warnings ? data.detected_warnings.length : 0) + (data.lookalikes ? data.lookalikes.length : 0);
     warningsCard.querySelector('.card-title').innerHTML = `
       ${getIconSVG('alertTriangle')}
-      Warnings Found (${detectedWarnings.length + lookalikes.length})
+      Warnings Found (${totalWarnings})
     `;
     let html = '';
 
-    for (const dw of detectedWarnings) {
-      const icon = getIconSVG(dw.pattern.iconName);
-      html += `
-        <div class="warning-item" onclick="this.classList.toggle('open')">
-          <div class="warning-header">
-            <span class="severity-icon-badge ${dw.pattern.severity}">${icon}</span>
-            <span class="warning-name">${dw.pattern.name}</span>
-            <span class="warning-count">${dw.matches.length} match${dw.matches.length > 1 ? 'es' : ''}</span>
-            <span class="warning-expand">${getIconSVG('arrowRight')}</span>
-          </div>
-          <div class="warning-body">
-            <div class="warning-explanation">${dw.pattern.explanation}</div>
-          </div>
-        </div>
-      `;
-    }
-
-    for (const lk of lookalikes) {
-      html += `
-        <div class="warning-item" onclick="this.classList.toggle('open')">
-          <div class="warning-header">
-            <span class="severity-icon-badge high">${getIconSVG('shieldAlert')}</span>
-            <span class="warning-name">Deceptive Lookalike Domain</span>
-            <span class="warning-count">Typosquatting</span>
-            <span class="warning-expand">${getIconSVG('arrowRight')}</span>
-          </div>
-          <div class="warning-body">
-            <div class="warning-explanation">
-              <strong>Embedded domain closely resembles a protected trademark:</strong>
-              <div class="domain-compare">
-                <span class="domain-found">${lk.found}</span>
-                <span class="domain-arrow">→</span>
-                <span>Authentic Authority:</span>
-                <span class="domain-real">${lk.real}</span>
-              </div>
-              <p style="margin-top:0.6rem">Attackers configure lookalike domains with single-character substitutions to deceive users into credential entry.</p>
+    if (data.detected_warnings) {
+      for (const dw of data.detected_warnings) {
+        const icon = getIconSVG(dw.iconName);
+        html += `
+          <div class="warning-item" onclick="this.classList.toggle('open')">
+            <div class="warning-header">
+              <span class="severity-icon-badge ${dw.severity}">${icon}</span>
+              <span class="warning-name">${escapeHTML(dw.name)}</span>
+              <span class="warning-count">${dw.matches.length} match${dw.matches.length > 1 ? 'es' : ''}</span>
+              <span class="warning-expand">${getIconSVG('arrowRight')}</span>
+            </div>
+            <div class="warning-body">
+              <div class="warning-explanation">${dw.explanation}</div>
             </div>
           </div>
-        </div>
-      `;
+        `;
+      }
+    }
+
+    if (data.lookalikes) {
+      for (const lk of data.lookalikes) {
+        html += `
+          <div class="warning-item" onclick="this.classList.toggle('open')">
+            <div class="warning-header">
+              <span class="severity-icon-badge high">${getIconSVG('shieldAlert')}</span>
+              <span class="warning-name">Deceptive Lookalike Domain</span>
+              <span class="warning-count">Typosquatting</span>
+              <span class="warning-expand">${getIconSVG('arrowRight')}</span>
+            </div>
+            <div class="warning-body">
+              <div class="warning-explanation">
+                <strong>Embedded domain closely resembles a protected trademark:</strong>
+                <div class="domain-compare">
+                  <span class="domain-found">${escapeHTML(lk.found)}</span>
+                  <span class="domain-arrow">→</span>
+                  <span>Authentic Authority:</span>
+                  <span class="domain-real">${escapeHTML(lk.real)}</span>
+                </div>
+                <p style="margin-top:0.6rem">Attackers configure lookalike domains with single-character substitutions to deceive users into credential entry.</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
     }
 
     warningsList.innerHTML = html;
   }
 
-  window._reportData = { message, detectedWarnings, lookalikes, senderFlags: allSenderFlags, scamCategory, flagCount, maxScore, riskLabel };
+  window._reportData = {
+    message,
+    riskLabel: data.risk_level,
+    flagCount: data.flag_count,
+    maxScore: data.max_score,
+    scamCategory: data.scam_category ? { name: data.scam_category } : null,
+    detectedWarnings: data.detected_warnings || [],
+    lookalikes: data.lookalikes || [],
+    senderFlags: data.sender_flags || [],
+    llm: data.llm_analysis
+  };
 }
 
-function renderHighlightedMessage(message, allMatches) {
-  if (allMatches.length === 0) {
+function renderHighlightedMatches(message, allMatches) {
+  if (!allMatches || allMatches.length === 0) {
     document.getElementById('highlightedMessage').textContent = message;
     return;
   }
 
   allMatches.sort((a, b) => a.start - b.start);
-
   const merged = [];
   for (const match of allMatches) {
     if (merged.length > 0 && match.start <= merged[merged.length - 1].end) {
       const last = merged[merged.length - 1];
       last.end = Math.max(last.end, match.end);
-      if (!last.categories.includes(match.categoryName)) {
-        last.categories.push(match.categoryName);
-      }
-      if (match.hlClass === 'hl-urgency' || match.hlClass === 'hl-info-req') {
-        last.hlClass = match.hlClass;
-      }
+      if (!last.categories.includes(match.category)) last.categories.push(match.category);
+      if (match.severity === 'high') last.severity = 'high';
     } else {
-      merged.push({ start: match.start, end: match.end, hlClass: match.hlClass, categories: [match.categoryName] });
+      merged.push({ start: match.start, end: match.end, severity: match.severity, categories: [match.category] });
     }
   }
 
@@ -1663,60 +1392,56 @@ function renderHighlightedMessage(message, allMatches) {
   for (const m of merged) {
     html += escapeHTML(message.substring(lastEnd, m.start));
     const matchedText = message.substring(m.start, m.end);
-    const tooltipText = m.categories.join(' · ');
-    html += `<span class="hl-badge hl-pulse ${m.hlClass}"><span class="hl-tooltip">${escapeHTML(tooltipText)}</span>${escapeHTML(matchedText)}</span>`;
+    const hlClass = m.severity === 'high' ? 'hl-urgency' : 'hl-info-req';
+    html += `<span class="hl-badge hl-pulse ${hlClass}"><span class="hl-tooltip">${escapeHTML(m.categories.join(' · '))}</span>${escapeHTML(matchedText)}</span>`;
     lastEnd = m.end;
   }
   html += escapeHTML(message.substring(lastEnd));
-
   document.getElementById('highlightedMessage').innerHTML = html;
 }
 
 function escapeHTML(str) {
+  if (!str) return '';
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
 }
 
-// ---- COPY VERIFICATION REPORT ----
 function copyReport() {
-  const data = window._reportData;
-  if (!data) return;
+  const d = window._reportData;
+  if (!d) return;
 
   let report = '========================================\n';
-  report += 'SUSPICION — MESSAGE VERIFICATION REPORT\n';
+  report += 'SUSPICION — HYBRID VERIFICATION REPORT\n';
   report += '========================================\n\n';
-  report += `Risk Level: ${data.riskLabel} (${data.flagCount} of ${data.maxScore} checks triggered)\n`;
-  if (data.scamCategory) report += `Category: ${data.scamCategory.name}\n`;
+  report += `Risk Level: ${d.riskLabel} (${d.flagCount} of ${d.maxScore} checks triggered)\n`;
+  if (d.scamCategory) report += `Category: ${d.scamCategory.name}\n`;
   report += '\n';
 
-  if (data.detectedWarnings.length > 0 || data.lookalikes.length > 0) {
-    report += 'DETECTED WARNING SIGNS:\n';
-    for (const dw of data.detectedWarnings) {
-      report += `  - [${dw.pattern.severity.toUpperCase()}] ${dw.pattern.name} (${dw.matches.length} matches)\n`;
+  if (d.llm) {
+    report += `AI FORENSIC VERDICT (${d.llm.provider || 'AI Engine'}):\n`;
+    report += `  ${d.llm.threat_summary}\n`;
+    if (d.llm.manipulation_tactics) {
+      report += `  Tactics: ${d.llm.manipulation_tactics.join(', ')}\n`;
     }
-    for (const lk of data.lookalikes) {
-      report += `  - [HIGH] Deceptive Domain: ${lk.found} -> Likely mimicking ${lk.real}\n`;
-    }
-    report += '\n';
+    report += `  Action Plan: ${d.llm.recommended_action}\n\n`;
   }
 
-  if (data.senderFlags.length > 0) {
-    report += 'SENDER & HEADER ANOMALIES:\n';
-    for (const f of data.senderFlags) {
-      report += `  - [${f.severity.toUpperCase()}] ${f.text.replace(/<[^>]*>/g, '')}\n`;
+  if (d.detectedWarnings.length > 0) {
+    report += 'DETECTED WARNING SIGNS:\n';
+    for (const dw of d.detectedWarnings) {
+      report += `  - [${dw.severity.toUpperCase()}] ${dw.name} (${dw.matches.length} matches)\n`;
     }
     report += '\n';
   }
 
   report += 'RECOMMENDED SAFETY ACTIONS:\n';
   report += '  1. Do not click links or buttons in the suspicious message.\n';
-  report += '  2. Never disclose passwords, PINs, or card numbers.\n';
+  report += '  2. Never disclose credentials or sensitive numbers.\n';
   report += '  3. Verify via an independent customer portal or phone line.\n';
   report += '  4. Report fraudulent messages to provider abuse desks.\n';
   report += '\n----------------------------------------\n';
   report += 'Generated by Suspicion\n';
-  report += '100% Client-Side Privacy\n';
 
   navigator.clipboard.writeText(report).then(() => {
     const btn = document.getElementById('btnCopy');
@@ -1726,21 +1451,12 @@ function copyReport() {
       btn.classList.remove('copied');
       btn.innerHTML = `${getIconSVG('link')} Copy Verification Report`;
     }, 2500);
-  }).catch(() => {
-    const ta = document.createElement('textarea');
-    ta.value = report;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    const btn = document.getElementById('btnCopy');
-    btn.classList.add('copied');
-    btn.innerHTML = `${getIconSVG('check')} Report Copied to Clipboard`;
-    setTimeout(() => {
-      btn.classList.remove('copied');
-      btn.innerHTML = `${getIconSVG('link')} Copy Verification Report`;
-    }, 2500);
   });
+}
+
+function runLocalFallback(message, fromAddr, replyToAddr, headers) {
+  // Simple in-browser fallback if backend is unreachable
+  alert('Server is currently offline. Please ensure server.py is running.');
 }
 </script>
 
