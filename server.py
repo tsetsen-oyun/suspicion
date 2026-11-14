@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """
-Suspicion — Hybrid Backend & Analysis Server
+Suspicion — Dual-Stack Backend & Analysis Server
 Combines deterministic security heuristics with Gemini LLM deep semantic inspection.
-Uses Python standard library for zero-dependency portability.
+Supports dual-stack IPv4 & IPv6 out of the box with zero external dependencies.
 """
 
 import os
 import sys
 import json
 import re
+import socket
 import urllib.request
 import urllib.error
+import traceback
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 PORT = 8000
@@ -246,9 +248,6 @@ def classify_scam(text):
     return best_cat if best_score >= 2 else None
 
 def call_gemini_llm(message, message_type, sender_from, api_key):
-    """
-    Invokes Gemini API via standard library urllib to perform semantic intent analysis.
-    """
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
     
     prompt = f"""
@@ -264,12 +263,12 @@ Respond STRICTLY with valid JSON following this exact schema:
 {{
   "is_scam": boolean,
   "confidence_score": integer (0 to 100),
-  "verdict_title": string (e.g. "Credential Harvesting Phishing", "Legitimate Notification", "Suspected Smishing"),
-  "manipulation_tactics": [list of 2-4 strings describing specific social engineering techniques, e.g. "Manufactured Urgency", "False Technical Authority", "Pretexting"],
-  "threat_summary": string (2-3 concise sentences detailing attacker motives and deception mechanisms),
-  "recommended_action": string (1-2 clear, actionable security instructions for the customer)
+  "verdict_title": string,
+  "manipulation_tactics": [list of 2-4 strings],
+  "threat_summary": string,
+  "recommended_action": string
 }}
-Do not include any markdown formatting, backticks, or other text outside the JSON object.
+Do not include any markdown formatting or text outside the JSON object.
 """
 
     payload = {
@@ -285,7 +284,7 @@ Do not include any markdown formatting, backticks, or other text outside the JSO
     )
     
     try:
-        with urllib.request.urlopen(req, timeout=12) as response:
+        with urllib.request.urlopen(req, timeout=10) as response:
             result = json.loads(response.read().decode('utf-8'))
             candidate = result['candidates'][0]['content']['parts'][0]['text']
             parsed = json.loads(candidate)
@@ -297,9 +296,6 @@ Do not include any markdown formatting, backticks, or other text outside the JSO
         return None
 
 def heuristic_semantic_fallback(message, category, warnings, lookalikes, sender_flags):
-    """
-    Intelligent heuristic semantic synthesis when LLM API key is not configured.
-    """
     tactics = []
     for w in warnings:
         if w['id'] == 'urgency':
@@ -365,118 +361,146 @@ class SuspicionHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         if self.path == '/api/analyze':
-            content_length = int(self.headers.get('Content-Length', 0))
-            post_data = self.rfile.read(content_length)
-            
             try:
-                data = json.loads(post_data.decode('utf-8'))
-            except Exception:
-                self.send_response(400)
+                content_length = int(self.headers.get('Content-Length', 0))
+                post_data = self.rfile.read(content_length)
+                
+                try:
+                    data = json.loads(post_data.decode('utf-8'))
+                except Exception:
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "Malformed JSON payload"}).encode('utf-8'))
+                    return
+
+                message = data.get('message', '')
+                msg_type = data.get('message_type', 'email')
+                sender_from = data.get('sender_from', '')
+                sender_reply_to = data.get('sender_reply_to', '')
+                headers = data.get('headers', '')
+                user_api_key = data.get('api_key') or os.environ.get('GEMINI_API_KEY')
+
+                # 1. Heuristic Pattern Detection
+                detected_warnings = []
+                all_matches = []
+                for wp in WARNING_PATTERNS:
+                    matches = []
+                    for p in wp['patterns']:
+                        for m in re.finditer(p, message, re.IGNORECASE):
+                            matches.append({
+                                "start": m.start(),
+                                "end": m.end(),
+                                "text": m.group(0)
+                            })
+                            all_matches.append({
+                                "start": m.start(),
+                                "end": m.end(),
+                                "text": m.group(0),
+                                "category": wp['name'],
+                                "severity": wp['severity']
+                            })
+                    if matches:
+                        detected_warnings.append({
+                            "id": wp['id'],
+                            "name": wp['name'],
+                            "severity": wp['severity'],
+                            "iconName": wp['iconName'],
+                            "explanation": wp['explanation'],
+                            "matches": matches
+                        })
+
+                # 2. Domain & Lookalikes
+                domains = extract_domains(message)
+                lookalikes = find_lookalikes(domains)
+
+                # 3. Sender & Header Flags
+                sender_flags = analyze_sender(sender_from, sender_reply_to)
+                header_flags = analyze_headers(headers)
+                all_sender_flags = sender_flags + header_flags
+
+                # 4. Scam Taxonomy Classification
+                category = classify_scam(message)
+
+                # 5. Severity Score
+                flag_count = len(detected_warnings) + len(lookalikes) + (1 if sender_flags else 0) + (1 if header_flags else 0)
+                max_score = len(WARNING_PATTERNS) + 2
+
+                if flag_count <= 2:
+                    risk_level = "Low Risk"
+                    risk_class = "low"
+                elif flag_count <= 5:
+                    risk_level = "Medium Risk"
+                    risk_class = "medium"
+                else:
+                    risk_level = "High Risk"
+                    risk_class = "high"
+
+                # 6. LLM Semantic Layer
+                llm_result = None
+                if user_api_key and user_api_key.strip():
+                    llm_result = call_gemini_llm(message, msg_type, sender_from, user_api_key.strip())
+                
+                if not llm_result:
+                    llm_result = heuristic_semantic_fallback(message, category, detected_warnings, lookalikes, all_sender_flags)
+
+                response_payload = {
+                    "risk_level": risk_level,
+                    "risk_class": risk_class,
+                    "flag_count": flag_count,
+                    "max_score": max_score,
+                    "scam_category": category,
+                    "detected_warnings": detected_warnings,
+                    "lookalikes": lookalikes,
+                    "sender_flags": all_sender_flags,
+                    "all_matches": all_matches,
+                    "llm_analysis": llm_result
+                }
+
+                self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
-                self.wfile.write(json.dumps({"error": "Malformed JSON payload"}).encode('utf-8'))
-                return
-
-            message = data.get('message', '')
-            msg_type = data.get('message_type', 'email')
-            sender_from = data.get('sender_from', '')
-            sender_reply_to = data.get('sender_reply_to', '')
-            headers = data.get('headers', '')
-            user_api_key = data.get('api_key') or os.environ.get('GEMINI_API_KEY')
-
-            # 1. Heuristic Pattern Detection
-            detected_warnings = []
-            all_matches = []
-            for wp in WARNING_PATTERNS:
-                matches = []
-                for p in wp['patterns']:
-                    for m in re.finditer(p, message, re.IGNORECASE):
-                        matches.append({
-                            "start": m.start(),
-                            "end": m.end(),
-                            "text": m.group(0)
-                        })
-                        all_matches.append({
-                            "start": m.start(),
-                            "end": m.end(),
-                            "text": m.group(0),
-                            "category": wp['name'],
-                            "severity": wp['severity']
-                        })
-                if matches:
-                    detected_warnings.append({
-                        "id": wp['id'],
-                        "name": wp['name'],
-                        "severity": wp['severity'],
-                        "iconName": wp['iconName'],
-                        "explanation": wp['explanation'],
-                        "matches": matches
-                    })
-
-            # 2. Domain & Lookalikes
-            domains = extract_domains(message)
-            lookalikes = find_lookalikes(domains)
-
-            # 3. Sender & Header Flags
-            sender_flags = analyze_sender(sender_from, sender_reply_to)
-            header_flags = analyze_headers(headers)
-            all_sender_flags = sender_flags + header_flags
-
-            # 4. Scam Taxonomy Classification
-            category = classify_scam(message)
-
-            # 5. Severity Score
-            flag_count = len(detected_warnings) + len(lookalikes) + (1 if sender_flags else 0) + (1 if header_flags else 0)
-            max_score = len(WARNING_PATTERNS) + 2
-
-            if flag_count <= 2:
-                risk_level = "Low Risk"
-                risk_class = "low"
-            elif flag_count <= 5:
-                risk_level = "Medium Risk"
-                risk_class = "medium"
-            else:
-                risk_level = "High Risk"
-                risk_class = "high"
-
-            # 6. LLM Semantic Layer
-            llm_result = None
-            if user_api_key and user_api_key.strip():
-                llm_result = call_gemini_llm(message, msg_type, sender_from, user_api_key.strip())
-            
-            if not llm_result:
-                llm_result = heuristic_semantic_fallback(message, category, detected_warnings, lookalikes, all_sender_flags)
-
-            response_payload = {
-                "risk_level": risk_level,
-                "risk_class": risk_class,
-                "flag_count": flag_count,
-                "max_score": max_score,
-                "scam_category": category,
-                "detected_warnings": detected_warnings,
-                "lookalikes": lookalikes,
-                "sender_flags": all_sender_flags,
-                "all_matches": all_matches,
-                "llm_analysis": llm_result
-            }
-
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(json.dumps(response_payload).encode('utf-8'))
+                self.wfile.write(json.dumps(response_payload).encode('utf-8'))
+            except Exception as e:
+                traceback.print_exc()
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": f"Server processing error: {str(e)}"}).encode('utf-8'))
         else:
             self.send_response(404)
             self.end_headers()
 
+class DualStackServer(HTTPServer):
+    """
+    Binds to IPv6 all interfaces with IPV6_V6ONLY=0, allowing simultaneous
+    IPv4 (127.0.0.1) and IPv6 (::1) connections on the same port on macOS/Linux.
+    """
+    address_family = socket.AF_INET6
+
+    def server_bind(self):
+        try:
+            self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+        except (AttributeError, OSError):
+            pass
+        super().server_bind()
+
 def main():
     print(f"==================================================")
-    print(f"🛡️  Suspicion Backend Server running on port {PORT}")
+    print(f"🛡️  Suspicion Dual-Stack Server running on port {PORT}")
     print(f"📍 Directory: {DIRECTORY}")
-    print(f"🌐 Serving http://localhost:{PORT}")
+    print(f"🌐 Serving http://localhost:{PORT} and http://127.0.0.1:{PORT}")
     print(f"🧠 Endpoint: POST http://localhost:{PORT}/api/analyze")
     print(f"==================================================")
-    server = HTTPServer(('0.0.0.0', PORT), SuspicionHandler)
+    try:
+        server = DualStackServer(('::', PORT), SuspicionHandler)
+    except Exception:
+        # Fallback to standard IPv4 if IPv6 socket fails
+        server = HTTPServer(('0.0.0.0', PORT), SuspicionHandler)
+
     try:
         server.serve_forever()
     except KeyboardInterrupt:

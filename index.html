@@ -1169,6 +1169,356 @@ function toggleAdvanced() {
   content.classList.toggle('open');
 }
 
+// ---- CLIENT-SIDE FALLBACK HEURISTIC ENGINE ----
+const KNOWN_BRANDS = [
+  'paypal.com', 'amazon.com', 'apple.com', 'microsoft.com', 'google.com',
+  'netflix.com', 'facebook.com', 'instagram.com', 'twitter.com', 'x.com',
+  'linkedin.com', 'chase.com', 'bankofamerica.com', 'wellsfargo.com', 'citibank.com',
+  'usbank.com', 'capitalone.com', 'americanexpress.com', 'discover.com',
+  'dropbox.com', 'icloud.com', 'outlook.com', 'yahoo.com', 'aol.com',
+  'fedex.com', 'ups.com', 'usps.com', 'dhl.com', 'walmart.com',
+  'target.com', 'bestbuy.com', 'ebay.com', 'etsy.com', 'spotify.com',
+  'adobe.com', 'zoom.us', 'slack.com', 'github.com', 'twitch.tv',
+  'tiktok.com', 'snapchat.com', 'whatsapp.com', 'telegram.org', 'discord.com',
+  'venmo.com', 'cashapp.com', 'zelle.com', 'stripe.com', 'square.com',
+  'coinbase.com', 'binance.com', 'robinhood.com'
+];
+
+const FREE_EMAIL_PROVIDERS = [
+  'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com',
+  'mail.com', 'protonmail.com', 'proton.me', 'icloud.com', 'yandex.com',
+  'zoho.com', 'gmx.com', 'live.com', 'msn.com', 'inbox.com'
+];
+
+const SCAM_TAXONOMY = [
+  { name: 'Package & Delivery Phishing', keywords: ['delivery', 'package', 'parcel', 'shipment', 'tracking', 'shipped', 'courier', 'fedex', 'ups', 'usps', 'dhl', 'order', 'dispatch'] },
+  { name: 'Banking & Financial Fraud', keywords: ['bank', 'account', 'transaction', 'transfer', 'payment', 'balance', 'statement', 'overdraft', 'wire', 'routing', 'iban', 'debit', 'credit'] },
+  { name: 'Account Security Scare', keywords: ['password', 'login', 'sign in', 'unauthorized', 'compromised', 'breached', 'hacked', 'security', 'verify', 'locked', 'suspended', 'two-factor', '2fa', 'mfa'] },
+  { name: 'Sweepstakes & Prize Scam', keywords: ['won', 'winner', 'lottery', 'prize', 'congratulations', 'sweepstakes', 'jackpot', 'selected', 'reward', 'claim'] },
+  { name: 'Recruitment & Job Offer Scam', keywords: ['job', 'position', 'hire', 'hiring', 'salary', 'remote work', 'work from home', 'opportunity', 'recruitment', 'interview', 'resume', 'cv', 'offer letter'] },
+  { name: 'Invoice & Billing Fraud', keywords: ['invoice', 'payment due', 'overdue', 'billing', 'subscription', 'renew', 'receipt', 'refund', 'charge', 'fee'] },
+  { name: 'Executive Impersonation (BEC)', keywords: ['ceo', 'cfo', 'director', 'manager', 'behalf of', 'executive', 'wire', 'confidential', "don't tell", 'keep this between', 'favor'] }
+];
+
+const WARNING_PATTERNS = [
+  {
+    id: 'urgency',
+    name: 'Artificial Urgency & Pressure',
+    severity: 'high',
+    iconName: 'clock',
+    patterns: [
+      /\b(act now|immediately|right away|as soon as possible|asap|urgent|urgently)\b/gi,
+      /\bwithin\s+\d+\s*(hours?|minutes?|days?)\b/gi,
+      /\b(don'?t delay|time.?sensitive|limited time|expires? (today|soon|shortly))\b/gi,
+      /\b(your account (will be|has been|is being) (suspended|closed|locked|deactivated|terminated|restricted))\b/gi,
+      /\b(failure to (act|respond|verify|comply|confirm))\b/gi,
+      /\b(last (chance|warning|notice|reminder))\b/gi,
+      /\b(respond|reply|act|verify|confirm|update)\b.{0,15}\b(before|or else|otherwise)\b/gi,
+    ],
+    explanation: 'Attackers engineer high-pressure deadlines to induce impulsive responses before victims can conduct independent verification.'
+  },
+  {
+    id: 'sensitive_info',
+    name: 'Requests for Sensitive Information',
+    severity: 'high',
+    iconName: 'lock',
+    patterns: [
+      /\b(password|passcode|pin\s*code|pin\s*number|security code)\b/gi,
+      /\b(social security|ssn|tax\s*id|national\s*id)\b/gi,
+      /\b(credit card|debit card|card number|cvv|cvc|expir(y|ation)\s*date)\b/gi,
+      /\b(bank account|routing number|account number|sort code|iban)\b/gi,
+      /\b(verify your (identity|account|information|details|credentials))\b/gi,
+      /\b(confirm your (identity|account|information|details|credentials))\b/gi,
+      /\b(update your (payment|billing|account)\s*(info|information|details|method))\b/gi,
+      /\b(login|log\s*in|sign\s*in)\s*(credentials?|details?|info(rmation)?)\b/gi,
+    ],
+    explanation: 'Legitimate enterprise services never request raw credentials, PINs, or complete card data via unauthenticated messages.'
+  },
+  {
+    id: 'suspicious_links',
+    name: 'Suspicious or Deceptive Links',
+    severity: 'medium',
+    iconName: 'link',
+    patterns: [
+      /https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}[^\s]*/gi,
+      /https?:\/\/[^\s]*\.(tk|ml|ga|cf|gq|xyz|top|club|buzz|icu|cam|rest|surf)\b[^\s]*/gi,
+      /(bit\.ly|tinyurl|t\.co|goo\.gl|ow\.ly|is\.gd|buff\.ly|soo\.gd|s\.id|rebrand\.ly|short\.io)\b[^\s]*/gi,
+      /https?:\/\/[^\s]*(-secure|-verify|-login|-update|-account|-confirm|-alert|-support)[^\s]*/gi,
+    ],
+    explanation: 'Deceptive top-level domains (.xyz, .tk) or shortened URLs conceal landing pages built for credential harvesting.'
+  },
+  {
+    id: 'threats',
+    name: 'Threats & Coercive Language',
+    severity: 'high',
+    iconName: 'shieldAlert',
+    patterns: [
+      /\b(unauthorized (access|activity|transaction|login|charge))\b/gi,
+      /\b(legal action|law enforcement|prosecut(e|ed|ion)|arrest)\b/gi,
+      /\b(permanently (locked|closed|suspended|banned|deleted))\b/gi,
+      /\b(security (breach|alert|incident|threat|compromise))\b/gi,
+      /\b(your (account|data|information) (is|has been|was) (compromised|breached|stolen|hacked|accessed))\b/gi,
+    ],
+    explanation: 'Coercive threats of legal action or permanent data loss override analytical thinking through fear.'
+  },
+  {
+    id: 'impersonation',
+    name: 'Corporate Impersonation Cues',
+    severity: 'medium',
+    iconName: 'user',
+    patterns: [
+      /\b(support team|security (team|department|division)|customer (service|care|support)\s*(team|department|center)?)\b/gi,
+      /\b(official (notice|notification|communication|message|announcement))\b/gi,
+      /\b(this is\s+(an?\s+)?(official|automated|system)\s*(message|notification|alert|email|notice))\b/gi,
+    ],
+    explanation: 'Fabricated titles such as \'Security Dispatch\' or \'Official Alert\' attempt to establish unearned authority.'
+  },
+  {
+    id: 'money_payment',
+    name: 'Untraceable Payment or Transfer Request',
+    severity: 'high',
+    iconName: 'dollar',
+    patterns: [
+      /\b(wire transfer|bank transfer|money transfer)\b/gi,
+      /\b(gift card|itunes card|google play card|steam card|amazon card)\b/gi,
+      /\b(crypto(currency)?|bitcoin|btc|ethereum|eth|usdt)\b/gi,
+      /\b(processing fee|handling fee|shipping fee|activation fee|insurance fee|tax fee)\b/gi,
+      /\b(venmo|zelle|cash\s*app|paypal\.me)\b/gi,
+    ],
+    explanation: 'Demands for untraceable or irreversible tender (gift cards, wire transfers, crypto) are standard indicators of fraud.'
+  }
+];
+
+function levenshtein(s1, s2) {
+  if (s1.length < s2.length) return levenshtein(s2, s1);
+  if (s2.length === 0) return s1.length;
+  let prevRow = Array.from({ length: s2.length + 1 }, (_, i) => i);
+  for (let i = 0; i < s1.length; i++) {
+    let currRow = [i + 1];
+    for (let j = 0; j < s2.length; j++) {
+      let insertions = prevRow[j + 1] + 1;
+      let deletions = currRow[j] + 1;
+      let substitutions = prevRow[j] + (s1[i] !== s2[j] ? 1 : 0);
+      currRow.push(Math.min(insertions, deletions, substitutions));
+    }
+    prevRow = currRow;
+  }
+  return prevRow[prevRow.length - 1];
+}
+
+function extractDomains(text) {
+  const urlRegex = /https?:\/\/([^\s\/\]"'>]+)/gi;
+  const list = [];
+  let m;
+  while ((m = urlRegex.exec(text)) !== null) {
+    const d = m[1].toLowerCase().replace(/^www\./, '');
+    if (!list.includes(d)) list.push(d);
+  }
+  return list;
+}
+
+function findLookalikes(domains) {
+  const res = [];
+  for (const domain of domains) {
+    if (KNOWN_BRANDS.includes(domain)) continue;
+    const base = domain.split('.')[0];
+    for (const brand of KNOWN_BRANDS) {
+      const bBase = brand.split('.')[0];
+      const dist = levenshtein(base, bBase);
+      const maxLen = Math.max(base.length, bBase.length);
+      if (dist > 0 && dist <= 2 && maxLen >= 4) {
+        res.push({ found: domain, real: brand, distance: dist });
+        break;
+      }
+    }
+  }
+  return res;
+}
+
+function analyzeSenderLocal(fromAddr, replyTo) {
+  const flags = [];
+  if (fromAddr) {
+    const match = fromAddr.match(/@([^\s>]+)/);
+    if (match) {
+      const domain = match[1].toLowerCase().replace(/^www\./, '');
+      const lookalikes = findLookalikes([domain]);
+      if (lookalikes.length > 0) {
+        flags.push({
+          severity: 'high',
+          text: `Sender domain <strong>${lookalikes[0].found}</strong> mimics trusted authority <strong>${lookalikes[0].real}</strong>.`,
+          domain: lookalikes[0]
+        });
+      }
+      if (FREE_EMAIL_PROVIDERS.includes(domain)) {
+        const lower = fromAddr.toLowerCase();
+        for (const kw of ['bank', 'paypal', 'amazon', 'apple', 'microsoft', 'support', 'security', 'admin']) {
+          if (lower.includes(kw)) {
+            flags.push({
+              severity: 'high',
+              text: `Sender operates from a free public mail provider (${domain}) while asserting affiliation with '${kw}'.`
+            });
+            break;
+          }
+        }
+      }
+      if (/\d/.test(domain.split('.')[0]) && !KNOWN_BRANDS.includes(domain)) {
+        flags.push({
+          severity: 'medium',
+          text: `Sender domain embeds numeric substitutions (<strong>${domain}</strong>), typical of typosquatting.`
+        });
+      }
+    }
+  }
+  if (fromAddr && replyTo) {
+    const m1 = fromAddr.match(/@([^\s>]+)/);
+    const m2 = replyTo.match(/@([^\s>]+)/);
+    if (m1 && m2 && m1[1].toLowerCase() !== m2[1].toLowerCase()) {
+      flags.push({
+        severity: 'high',
+        text: `Reply-To destination (<strong>${m2[1]}</strong>) diverts replies away from From domain (<strong>${m1[1]}</strong>).`
+      });
+    }
+  }
+  return flags;
+}
+
+function analyzeHeadersLocal(headerText) {
+  const flags = [];
+  if (!headerText || !headerText.trim()) return flags;
+  const fromM = headerText.match(/^From:\s*.*?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+)/mi);
+  const retM = headerText.match(/^Return-Path:\s*<?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+)/mi);
+  if (fromM && retM) {
+    const d1 = fromM[1].split('@')[1]?.toLowerCase();
+    const d2 = retM[1].split('@')[1]?.toLowerCase();
+    if (d1 && d2 && d1 !== d2) {
+      flags.push({
+        severity: 'high',
+        text: `Envelope Return-Path (<strong>${d2}</strong>) conflicts with From domain (<strong>${d1}</strong>).`
+      });
+    }
+  }
+  if (/spf=(fail|softfail)/i.test(headerText)) {
+    flags.push({ severity: 'high', text: 'SPF validation failure: originating mail host lacks domain relay authorization.' });
+  }
+  if (/dkim=fail/i.test(headerText)) {
+    flags.push({ severity: 'high', text: 'DKIM signature failure: cryptographic payload verification failed.' });
+  }
+  if (/dmarc=fail/i.test(headerText)) {
+    flags.push({ severity: 'high', text: 'DMARC policy failure: message breaches domain sender compliance standard.' });
+  }
+  return flags;
+}
+
+function classifyScamLocal(text) {
+  const lower = text.toLowerCase();
+  let bestCat = null;
+  let bestScore = 0;
+  for (const cat of SCAM_TAXONOMY) {
+    let score = 0;
+    for (const kw of cat.keywords) {
+      if (lower.includes(kw)) score++;
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      bestCat = cat.name;
+    }
+  }
+  return bestScore >= 2 ? bestCat : null;
+}
+
+function runSeamlessLocalAnalysis(message, fromAddr, replyToAddr, headers) {
+  const detectedWarnings = [];
+  const allMatches = [];
+
+  for (const wp of WARNING_PATTERNS) {
+    const matches = [];
+    for (const regex of wp.patterns) {
+      regex.lastIndex = 0;
+      let m;
+      while ((m = regex.exec(message)) !== null) {
+        matches.push({ start: m.index, end: m.index + m[0].length, text: m[0] });
+        allMatches.push({ start: m.index, end: m.index + m[0].length, text: m[0], category: wp.name, severity: wp.severity });
+      }
+    }
+    if (matches.length > 0) {
+      detectedWarnings.push({
+        id: wp.id,
+        name: wp.name,
+        severity: wp.severity,
+        iconName: wp.iconName,
+        explanation: wp.explanation,
+        matches
+      });
+    }
+  }
+
+  const domains = extractDomains(message);
+  const lookalikes = findLookalikes(domains);
+  const senderFlags = analyzeSenderLocal(fromAddr, replyToAddr);
+  const headerFlags = analyzeHeadersLocal(headers);
+  const allSenderFlags = [...senderFlags, ...headerFlags];
+  const category = classifyScamLocal(message);
+
+  const flagCount = detectedWarnings.length + lookalikes.length + (senderFlags.length > 0 ? 1 : 0) + (headerFlags.length > 0 ? 1 : 0);
+  const maxScore = WARNING_PATTERNS.length + 2;
+
+  let riskLevel, riskClass;
+  if (flagCount <= 2) {
+    riskLevel = "Low Risk"; riskClass = "low";
+  } else if (flagCount <= 5) {
+    riskLevel = "Medium Risk"; riskClass = "medium";
+  } else {
+    riskLevel = "High Risk"; riskClass = "high";
+  }
+
+  const tactics = [];
+  for (const w of detectedWarnings) {
+    if (w.id === 'urgency') tactics.push("Manufactured Panic & Artificial Deadlines");
+    else if (w.id === 'sensitive_info') tactics.push("Direct Credential Harvesting");
+    else if (w.id === 'threats') tactics.push("Coercive Consequence Intimidation");
+    else if (w.id === 'impersonation') tactics.push("Institutional Authority Impersonation");
+    else if (w.id === 'suspicious_links') tactics.push("Host Obfuscation & URL Deception");
+    else if (w.id === 'money_payment') tactics.push("Irreversible Tender Solicitation");
+  }
+  if (lookalikes.length > 0 || allSenderFlags.some(f => f.domain)) {
+    tactics.push("Typosquatting Trademark Substitution");
+  }
+  if (tactics.length === 0) tactics.push("Standard Notification");
+
+  const isScam = flagCount >= 3;
+  const threatSummary = isScam
+    ? `The message employs ${tactics.slice(0, 2).join(' and ').toLowerCase()} to compel immediate action. The attacker targets recipient trust by simulating an urgent ${category || 'account'} event.`
+    : (flagCount > 0 ? "Low-to-moderate heuristic indicators detected. Some patterns commonly observed in ambiguous notices." : "No prevalent deception tactics detected. Content structure adheres to typical correspondence.");
+
+  const actionPlan = isScam
+    ? "Do not click links or furnish credentials. Disconnect from this thread and verify through the service's official public telephone line or domain."
+    : "Exercise standard verification hygiene before interacting with unsolicited links.";
+
+  const localPayload = {
+    risk_level: riskLevel,
+    risk_class: riskClass,
+    flag_count: flagCount,
+    max_score: maxScore,
+    scam_category: category,
+    detected_warnings: detectedWarnings,
+    lookalikes,
+    sender_flags: allSenderFlags,
+    all_matches: allMatches,
+    llm_analysis: {
+      enabled: false,
+      provider: "Client-Side Semantic Engine",
+      is_scam: isScam,
+      confidence_score: Math.min(60 + flagCount * 7, 98),
+      verdict_title: `${riskLevel}: ${category || 'Phishing Assessment'}`,
+      manipulation_tactics: tactics.slice(0, 4),
+      threat_summary: threatSummary,
+      recommended_action: actionPlan
+    }
+  };
+
+  renderServerResults(message, localPayload);
+}
+
 async function analyzeMessage() {
   const message = document.getElementById('messageInput').value.trim();
   if (!message) {
@@ -1187,30 +1537,51 @@ async function analyzeMessage() {
   btn.disabled = true;
   btn.innerHTML = `<svg class="icon" style="animation:spin 1s linear infinite" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="16"/></svg> Running Deep Forensic Scan...`;
 
-  try {
-    const res = await fetch('/api/analyze', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message,
-        message_type: selectedType,
-        sender_from: fromAddr,
-        sender_reply_to: replyToAddr,
-        headers,
-        api_key: apiKey
-      })
-    });
+  let analyzedSuccessfully = false;
 
-    if (!res.ok) throw new Error('API request failed with status ' + res.status);
-    const data = await res.json();
-    renderServerResults(message, data);
-  } catch (err) {
-    console.warn('API error, check backend server:', err);
-    alert('Backend connection error. Please make sure server.py is running.');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = `<svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Run Forensic Analysis`;
+  // Multi-target candidate endpoints to handle localhost, 127.0.0.1, or relative paths
+  const candidateEndpoints = window.location.protocol.startsWith('http')
+    ? ['/api/analyze', 'http://127.0.0.1:8000/api/analyze', 'http://localhost:8000/api/analyze']
+    : ['http://127.0.0.1:8000/api/analyze', 'http://localhost:8000/api/analyze'];
+
+  for (const endpoint of candidateEndpoints) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message,
+          message_type: selectedType,
+          sender_from: fromAddr,
+          sender_reply_to: replyToAddr,
+          headers,
+          api_key: apiKey
+        }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        renderServerResults(message, data);
+        analyzedSuccessfully = true;
+        break;
+      }
+    } catch (e) {
+      // Endpoint attempt failed or timed out, continue to next
+    }
   }
+
+  // If server endpoints cannot be reached, seamlessly run client-side analysis
+  if (!analyzedSuccessfully) {
+    runSeamlessLocalAnalysis(message, fromAddr, replyToAddr, headers);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = `<svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Run Forensic Analysis`;
 }
 
 function renderServerResults(message, data) {
